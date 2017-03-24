@@ -17,7 +17,7 @@ namespace GoogleMapsMVC.Web.Controllers
         [HttpPost]
         public JsonResult Save(decimal Latitude, decimal Longitude)
         {
-            //Saving to DB
+            //TODO: Add code for saving to DB
 
             return Json(new { Status = "Success" });
         }
