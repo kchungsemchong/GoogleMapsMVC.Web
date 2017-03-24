@@ -13,5 +13,13 @@ namespace GoogleMapsMVC.Web.Controllers
         {
             return View();
         }
+
+        [HttpPost]
+        public JsonResult Save(decimal Latitude, decimal Longitude)
+        {
+            //Saving to DB
+
+            return Json(new { Status = "Success" });
+        }
     }
 }
