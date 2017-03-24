@@ -1,10 +1,155 @@
 ﻿@{
-    ViewBag.Title = "Index";
+    ViewBag.Title = "Get Geo Location";
     Layout = "~/Views/Shared/_Layout.cshtml";
 }
 
+<style>
+    /* Always set the map height explicitly to define the size of the div
+       * element that contains the map. */
+    #map {
+        width: 100%;
+        height: 400px;
+        background-color: grey;
+    }
+
+    #infowindow-content .title {
+        font-weight: bold;
+    }
+
+    #infowindow-content {
+        display: none;
+    }
+
+    #map #infowindow-content {
+        display: inline;
+    }
+</style>
+
+
 <h2>Index</h2>
-<script type="text/javascript">
+<div>
+    <input type="text" class="form-control" id="txtLocation" placeholder="Enter a location" />
+    <input type="text" class="form-control" id="txtLatitude" placeholder="Latitude" readonly />
+    <input type="text" class="form-control" id="txtLongitude" placeholder="Longitude" readonly />
+    <input type="button" class="form-control btn-success" id="btnSave" value="Save">
+</div>
+<div id="map"></div>
+<div id="infowindow-content">
+    <img src="" width="16" height="16" id="place-icon">
+    <span id="place-name" class="title"></span><br>
+    <span id="place-address"></span>
+</div>
 
-</script>
+@section scripts{
+    <script>
+        var btnSave = document.getElementById('btnSave');
+        var txtLatitude = document.getElementById('txtLatitude');
+        var txtLongitude = document.getElementById('txtLongitude');
 
+        function initMap() {
+            var uluru = { lat: -25.363, lng: 131.044 };
+            var input = document.getElementById('txtLocation');
+
+
+            var map = new google.maps.Map(document.getElementById('map'), {
+                zoom: 4,
+                center: uluru
+            });
+            var marker = new google.maps.Marker({
+                position: uluru,
+                map: map
+            });
+
+            var options = {
+                types: ['address']
+            };
+
+            var autocomplete = new google.maps.places.Autocomplete(input);
+            var infowindow = new google.maps.InfoWindow();
+
+            var infowindowContent = document.getElementById('infowindow-content');
+            infowindow.setContent(infowindowContent);
+
+            autocomplete.addListener('place_changed', function () {
+                infowindow.close();
+                marker.setVisible(false);
+
+                var place = autocomplete.getPlace();
+                if (!place.geometry) {
+                    // User entered the name of a Place that was not suggested and
+                    // pressed the Enter key, or the Place Details request failed.
+                    window.alert("No details available for input: '" + place.name + "'");
+                    return;
+                }
+
+                // If the place has a geometry, then present it on a map.
+                if (place.geometry.viewport) {
+                    map.fitBounds(place.geometry.viewport);
+                } else {
+                    map.setCenter(place.geometry.location);
+                    map.setZoom(17);  // Why 17? Because it looks good.
+                }
+                marker.setPosition(place.geometry.location);
+                marker.setVisible(true);
+
+
+                var address = '';
+                if (place.address_components) {
+                    address = [
+                      (place.address_components[0] && place.address_components[0].short_name || ''),
+                      (place.address_components[1] && place.address_components[1].short_name || ''),
+                      (place.address_components[2] && place.address_components[2].short_name || '')
+                    ].join(' ');
+
+                }
+
+                infowindowContent.children['place-icon'].src = place.icon;
+                infowindowContent.children['place-name'].textContent = place.name;
+                infowindowContent.children['place-address'].textContent = address;
+                infowindow.open(map, marker);
+
+                if (place.geometry.location) {
+                    txtLatitude.value = place.geometry.location.lat();
+                    txtLongitude.value = place.geometry.location.lng();
+                }
+
+                btnSave.disabled = false;
+            });
+
+
+            $(document).ready(function () {
+
+                if (txtLatitude.value === '' && txtLongitude.value === '') {
+                    btnSave.disabled = true;
+                }
+
+                $("#btnSave").click(function () {
+
+                    if (txtLatitude.value != '' && txtLongitude.value != '') {
+
+                        $.ajax({
+                            url: '@Url.Action("Save", "GMaps")',
+                            type: "POST",
+                            dataType: "json",
+                            data: {
+                                Latitude: txtLatitude.value,
+                                Longitude: txtLongitude.value
+                            },
+                            success: function (data) {
+                                alert(data.Status);
+                            },
+                            error: function (XMLHttpRequest, textStatus, errorThrown) {
+                                //debugger;
+                                alert(textStatus);
+                            }
+                        });
+                    }
+
+                });
+            });
+        }
+    </script>
+    <script async defer
+            src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDmDZ1txsLQII-jXAYMIPPUtSl6QJm-GJA&libraries=places&callback=initMap">
+    </script>
+}
