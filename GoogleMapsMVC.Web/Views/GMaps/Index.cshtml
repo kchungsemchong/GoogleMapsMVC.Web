@@ -87,6 +87,7 @@
                                 document.getElementById('txtLatitude').value = '';
                                 document.getElementById('txtLongitude').value = '';
                                 document.getElementById('txtLocation').value = '';
+                                document.getElementById('btnSave').classList.remove('btn-success').add('btn-danger');
                             }
                         },
                         error: function (XMLHttpRequest, textStatus, errorThrown) {
