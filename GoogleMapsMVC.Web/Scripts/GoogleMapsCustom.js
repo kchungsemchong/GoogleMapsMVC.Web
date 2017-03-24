@@ -48,6 +48,7 @@ function initMap() {
 
     autocomplete.addListener('place_changed', function () {
         infowindow.close();
+        infoWindowDefault.close();
         marker.setVisible(false);
 
         var place = autocomplete.getPlace();
